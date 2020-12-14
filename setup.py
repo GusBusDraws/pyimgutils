@@ -20,8 +20,8 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        "numpy",
-        "matplotlib",
-        "scikit-image"
+        "matplotlib>=3.2.2",
+        "numpy>=1.18.5",
+        "scikit-image>=0.16.2"
     ]
 )
