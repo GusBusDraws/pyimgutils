@@ -73,6 +73,9 @@ def seq_animate(img_dir_path,
     img_fn_list.sort()
         
     img_axes = []
+    # Set the filename prefixe to 'raw' to show that no additional processing 
+    # functions were applied. If processing function is applied, fn_prefix will
+    # be changed.
     fn_prefix = 'raw'
 
     for n in np.arange(img_range[0], img_range[1], img_step):
@@ -83,6 +86,8 @@ def seq_animate(img_dir_path,
 
         if processing_func is not None:
             img_n = processing_func(img_n)
+            # Change filename prefix to match the name of the processing 
+            # functions applied
             fn_prefix = processing_func.__name__
 
         img_n_ax = ax.imshow(img_n, aspect='auto', animated=True)
@@ -123,11 +128,7 @@ def seq_animate(img_dir_path,
         plt.show()
 
 def test():
-    seq_animate(r'C:\Users\gusb\Research\APS_al-ag\Data\2014-08_APS\034_Al70Ag30_200',
-                (2830, 2920),
-                2,
-                show_img_num=True,
-                jupyter=False)
+    print('T E S T I N G . . .')
 
 
 if __name__ == '__main__':
