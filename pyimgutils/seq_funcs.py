@@ -28,19 +28,20 @@ def get_img_dims(img_dir_path,
 
     return img_n.shape[0], img_n.shape[1]
 
-def seq_animate(img_dir_path, 
-                img_range,
-                img_step,
-                processing_func=None,
-                show_img_num=False,
-                anim_type='gif',
-                img_filetype='.tif',
-                jupyter=True,
-                figsize=(6, 6),
-                colormap='viridis',
-                save_gif_path=None, 
-                save_dir_path=None,
-                anim_fps=10):
+def animate(img_dir_path, 
+            img_range,
+            img_step,
+            processing_func=None,
+            show_img_num=False,
+            anim_type='gif',
+            img_filetype='.tif',
+            jupyter=True,
+            figsize=(6, 6),
+            colormap='viridis',
+            save_gif_path=None, 
+            exp_name=None,
+            save_dir_path=None,
+            anim_fps=10):
     """Show a sequence of images from a directory. Can be used to generate an animation from the images.
 
     Args:
@@ -55,11 +56,13 @@ def seq_animate(img_dir_path,
         figsize (2-tuple, optional): Figure size to be shown in inches. Defaults to (6, 6)
         colormap (str, optional): Colormap to apply to shown images. Does not save in animation. Defaults to 'viridis'.
         save_gif_path (str, optional): Path to save location of animated gif. Filename and .gif file extension must be included or ValueError raised. Overides save_dir_path. Defaults to None.
+        exp_name (str, optional): Required for auto-generating filenames with 'save_dir_path'. If a path to a directory to save an animation is given, exp_name must also be given or else a ValueError is raised. Defaults to None.
         save_dir_path (str, optional): Path to save directory of animated gif. If provided instead of save_gif_path, filename will be generated based on range and step. save_gif_path overides this. Defaults to None.
         anim_fps (int, optional): Framerate of saved animation in frames per second. Defaults to 10.
 
     Raises:
         ValueError: Raises error when save_gif_path not passed with a .gif file extension.
+        ValueError: Raises error when exp_name not passed with save_dir_path.
     """
     if save_gif_path is not None and not save_gif_path.endswith('.gif'):
         raise ValueError('Save path must include filename with .gif extension.')
@@ -113,9 +116,13 @@ def seq_animate(img_dir_path,
     if save_gif_path is not None:
         save_path = save_gif_path
     elif save_dir_path is not None:
-        fn = (f'{fn_prefix}_{img_range[0]}-{img_range[1]}-{img_step}'
-              f'_{anim_fps}fps.{anim_type}')
-        save_path = os.path.join(save_dir_path, fn)
+        if exp_name is not None:
+            fn = (f'{exp_name}_{fn_prefix}_{img_range[0]}-{img_range[1]}'
+                  f'-{img_step}_{anim_fps}fps.{anim_type}')
+            save_path = os.path.join(save_dir_path, fn)
+        else:
+            raise ValueError(
+                'Value for exp_name must be passed with save_dir_path')
         
     if save_path is not None:
         img_anim.save(save_path, writer=writer)
