@@ -6,75 +6,81 @@ import numpy as np
 from skimage import io, exposure, img_as_float, img_as_ubyte
 
 
-def get_n_imgs(img_dir_path,
-               img_filetype='.tif'):
-
-    img_dir_list = os.listdir(img_dir_path)
-    img_fn_list = [fn for fn in img_dir_list if fn.endswith(img_filetype)]
-    img_fn_list.sort()
-
-    return len(img_fn_list)
-
-def get_img_dims(img_dir_path,
-                 n,
-                 img_filetype='.tif'):
-
-    img_dir_list = os.listdir(img_dir_path)
-    img_fn_list = [fn for fn in img_dir_list if fn.endswith(img_filetype)]
-    img_fn_list.sort()
-
-    img_n_path = os.path.join(img_dir_path, img_fn_list[n])
-    img_n = io.imread(img_n_path)
-
-    return img_n.shape[0], img_n.shape[1]
-
 def animate(img_dir_path, 
             img_range,
             img_step,
+            anim_fps=10,
             processing_func=None,
-            show_img_num=False,
-            anim_type='gif',
-            img_filetype='.tif',
-            jupyter=True,
-            figsize=(6, 6),
-            colormap='viridis',
-            save_gif_path=None, 
             exp_name=None,
             save_dir_path=None,
-            anim_fps=10):
+            anim_type='gif',
+            fig_h=6,
+            fig_w=None,
+            img_aspect='auto',
+            show_img_num=False,
+            img_num_loc=(25, 50),
+            colormap='viridis',
+            img_filetype='.tif',
+            jupyter=True,
+            save_gif_path=None):
+
     """Show a sequence of images from a directory. Can be used to generate an animation from the images.
 
     Args:
         img_dir_path (str): Path to directory containing images.
         img_range (2-tuple): Start and end for image sequence.
         img_step (int): Step size for moving between range defined by img_range.
+        anim_fps (int, optional): Framerate of saved animation in frames per second. Defaults to 10.
         processing_func (function, optional): Optional processing function that will be applied to each image. Defaults to None.
-        show_img_num (bool, optional): How to show image number. Defaults to False. 
-        anim_type (str, optional): Pass 'gif' to save animation as 'gif', or 'mp4' to save animation as a video file. Saving as video file requires can greatly reduce file size (over an order of magnitude in some cases) by allowing for copmressing in the time dimension, but requires movie writer software FFMpeg. See README.md for install details. Defaults to 'gif'.
-        img_filetype (str, optional): The type of images in directory at img_dir_path. Defaults to '.tif'.
-        jupyter (bool, optional): If using a Jupyter Notebook, jupyter=True to properly show the matplotlib plots. Defaults to True.
-        figsize (2-tuple, optional): Figure size to be shown in inches. Defaults to (6, 6)
-        colormap (str, optional): Colormap to apply to shown images. Does not save in animation. Defaults to 'viridis'.
-        save_gif_path (str, optional): Path to save location of animated gif. Filename and .gif file extension must be included or ValueError raised. Overides save_dir_path. Defaults to None.
         exp_name (str, optional): Required for auto-generating filenames with 'save_dir_path'. If a path to a directory to save an animation is given, exp_name must also be given or else a ValueError is raised. Defaults to None.
         save_dir_path (str, optional): Path to save directory of animated gif. If provided instead of save_gif_path, filename will be generated based on range and step. save_gif_path overides this. Defaults to None.
-        anim_fps (int, optional): Framerate of saved animation in frames per second. Defaults to 10.
+        anim_type (str, optional): Pass 'gif' to save animation as 'gif', or 'mp4' to save animation as a video file. Saving as video file requires can greatly reduce file size (over an order of magnitude in some cases) by allowing for copmressing in the time dimension, but requires movie writer software FFMpeg. See README.md for install details. Defaults to 'gif'.
+        fig_h (float, optional): Figure height to be shown in inches. If None is passed, will be calculated from fig_w. Defaults to 6.
+        fig_w (float, optional): Figure width to be shown in inches. If None is passed, will be calculated from fig_h. Defaults to None.
+        img_aspect (str, optional): Determines how to handle the aspect ratio of the image. To match the figsize, pass 'auto'. For maintaining the actual aspect ratio, pass None. Defaults to 'auto'.
+        show_img_num (bool, optional): How to show image number. Defaults to False.
+        img_num_loc (2-tuple, optional): Pixel location for placing bottom left corner of img_num. Defaults to (25, 50).
+        colormap (str, optional): Colormap to apply to shown images. Does not save in animation. Defaults to 'viridis'.
+        img_filetype (str, optional): The type of images in directory at img_dir_path. Defaults to '.tif'.
+        jupyter (bool, optional): If using a Jupyter Notebook, jupyter=True to properly show the matplotlib plots. Defaults to True.
+        save_gif_path (str, optional): Path to save location of animated gif. Filename and .gif file extension must be included or ValueError raised. Overides save_dir_path. Defaults to None.
 
     Raises:
+        ValueError: Raised when fig_h and fig_w are both None. (one should be calculated from the other.)
         ValueError: Raises error when save_gif_path not passed with a .gif file extension.
         ValueError: Raises error when exp_name not passed with save_dir_path.
     """
+
     if save_gif_path is not None and not save_gif_path.endswith('.gif'):
         raise ValueError('Save path must include filename with .gif extension.')
-
-    fig, ax = plt.subplots(figsize=figsize)
-    fig.subplots_adjust(
-        left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
 
     img_dir_list = os.listdir(img_dir_path)
     img_fn_list = [fn for fn in img_dir_list if fn.endswith(img_filetype)]
     img_fn_list.sort()
-        
+    
+    # Get first image and perform any processing to determine image aspect 
+    # ratio which will determine figure size
+    img_0_path = os.path.join(img_dir_path, img_fn_list[0])
+    img_0 = io.imread(img_0_path)
+    if processing_func is not None:
+        img_0 = processing_func(img_0)
+    img_asp = img_0.shape[0]/img_0.shape[1]
+    
+    if fig_h is not None and fig_w is None:
+        fig_w = fig_h/img_asp
+    elif fig_w is not None and fig_h is None:
+        fig_h = fig_w*img_asp
+    elif fig_h is None and fig_w is None:
+        raise ValueError('Either fig_h or fig_w must be non-None to '
+                         'calculate the other value.')
+    elif fig_h is not None and fig_w is not None:
+        print('Warning: passing fig_h and fig_w may result in distorted aspect '
+              'ratio of image.')
+
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+    fig.subplots_adjust(
+        left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
+
     img_axes = []
     # Set the filename prefixe to 'raw' to show that no additional processing 
     # functions were applied. If processing function is applied, fn_prefix will
@@ -93,12 +99,12 @@ def animate(img_dir_path,
             # functions applied
             fn_prefix = processing_func.__name__
 
-        img_n_ax = ax.imshow(img_n, aspect='auto', animated=True)
+        img_n_ax = ax.imshow(img_n, aspect=img_aspect, animated=True)
         objs_to_anim = [img_n_ax]
         ax.set_axis_off()
         if show_img_num:
             img_num = ax.annotate(f'Image {n}/{len(img_dir_list)}', 
-                                  (25, 50),
+                                  img_num_loc,
                                   color='white',
                                   fontsize='medium')
             objs_to_anim.append(img_num)
