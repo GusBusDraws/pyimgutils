@@ -25,11 +25,12 @@ def subtract_img(img, img_to_subtract):
 
     return img_diff
 
-def crop_to_window(img):
+def crop_to_window(img, rotate_deg=-90):
     """Funciton to crop image to a lighter region in the middle of the full image.
 
     Args:
         img (np.ndarray): Image to crop.
+        rotate_deg (int, optional): Amount to rotate cropped region by. Defaults to -90.
 
     Returns:
         np.ndarray: Cropped image that is result of cropping the full image to the window.
@@ -46,7 +47,7 @@ def crop_to_window(img):
 
     # Label the remaining regions and select regions larger than 100 pixels 
     img_label = measure.label(img_cleared)
-    regions = [region for region in measure.regionprops(img_label) 
+    regions = [region for region in measure.regionprops(img_label)
                if region.area > 100]
     if len(regions) < 1:
         raise ValueError('No regions match assigned rules')
@@ -58,7 +59,7 @@ def crop_to_window(img):
         img_crop = img[minr:maxr, minc:maxc]
 
     # Rotate and trim remaining region
-    img_rotate = transform.rotate(img_crop, -90, resize=True)
+    img_rotate = transform.rotate(img_crop, rotate_deg, resize=True)
     img_trim = util.crop(img_rotate, 10)
 
     return img_trim
