@@ -27,7 +27,7 @@ pyimgutils is not currently uploaded to PyPI.org, but can still be installed via
 #
 Module containing functions for showing sequences of images from a directory of images. Functions have options for passing processing functions as well as a save path for an animated gif of the image sequence.
 
-### **animate()**
+### `animate()`
 
 Function to animate images in a directory when the path to that directory is passed. Animations saved as GIFs, but can be saved as MP4s for lower file sizes if the correct movie writer software is installed (see below).
 
@@ -54,7 +54,7 @@ Function to animate images in a directory when the path to that directory is pas
 #
 Module containing functions for performing image processing routines. These functions can be imported into a Jupyter Notebook and combined in a separate function that and passed to an image sequence function so that the whole routine can be applied to each image.
 
-### **subtract_img()**
+### `subtract_img()`
 
 Subtract img_to_subtract from img. This was developed to subtract an all liquid image from other images in a solidification dataset to increase contrast of solid regions.
 
@@ -67,7 +67,7 @@ Subtract img_to_subtract from img. This was developed to subtract an all liquid 
 
 - np.ndarray: Image that is result of subtraction.
 
-### **crop_to_window()**
+### `crop_to_window()`
 
 Function to crop image to a lighter region in the middle of the full image. Developed to be used in AET experiments featuring small region of interest in larger field-of-view due to the fact that APS experimental setup was used. 
 
@@ -79,7 +79,7 @@ Function to crop image to a lighter region in the middle of the full image. Deve
 
 - np.ndarray: Cropped image that is result of cropping the full image to the window.
 
-### **v_fft_filter(img)**
+### `v_fft_filter(img)`
 
 Function for performing a vertically oriented Fast Fourier Transform (FFT) filtering on an image by removing vertical frequencies in the frequency space image and inverse transforming the result back to the spatial domain. Developed to be used with AET experiments: artifacts from imaging consist of horizontal lines/bands that are repeated vertically throughout the image (once cropped and rotated). Since bands are repeating vertically, they show in the frequency domain as a vertical band that can be removed/filtered out before transforming back to the spatial domain.
 

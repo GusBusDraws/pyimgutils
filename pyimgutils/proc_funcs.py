@@ -3,6 +3,7 @@ import numpy as np
 from skimage import (img_as_float, filters, morphology, segmentation, measure, 
                      transform, util)
 
+
 def subtract_img(img, img_to_subtract):
     """Subtract img_to_subtract from img.
 

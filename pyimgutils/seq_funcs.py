@@ -99,7 +99,8 @@ def animate(img_dir_path,
             # functions applied
             fn_prefix = processing_func.__name__
 
-        img_n_ax = ax.imshow(img_n, aspect=img_aspect, animated=True)
+        img_n_ax = ax.imshow(
+            img_n, aspect=img_aspect, cmap=colormap, animated=True)
         objs_to_anim = [img_n_ax]
         ax.set_axis_off()
         if show_img_num:
