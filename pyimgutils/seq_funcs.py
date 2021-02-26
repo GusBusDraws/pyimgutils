@@ -16,7 +16,7 @@ def animate(img_dir_path,
             anim_type='gif',
             fig_h=6,
             fig_w=None,
-            img_aspect='auto',
+            img_asp_setting='auto',
             show_img_num=False,
             img_num_loc=(25, 50),
             colormap='viridis',
@@ -100,7 +100,7 @@ def animate(img_dir_path,
             fn_prefix = processing_func.__name__
 
         img_n_ax = ax.imshow(
-            img_n, aspect=img_aspect, cmap=colormap, animated=True)
+            img_n, aspect=img_asp_setting, cmap=colormap, animated=True)
         objs_to_anim = [img_n_ax]
         ax.set_axis_off()
         if show_img_num:
