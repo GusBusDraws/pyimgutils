@@ -26,7 +26,7 @@ def subtract_img(img, img_to_subtract):
 
     return img_diff
 
-def crop_to_window(img, rotate_deg=-90):
+def crop_to_window(img, rotate_deg=-90, region_area=100):
     """Funciton to crop image to a lighter region in the middle of the full image.
 
     Args:
@@ -49,11 +49,12 @@ def crop_to_window(img, rotate_deg=-90):
     # Label the remaining regions and select regions larger than 100 pixels 
     img_label = measure.label(img_cleared)
     regions = [region for region in measure.regionprops(img_label)
-               if region.area > 100]
+               if region.area > region_area]
     if len(regions) < 1:
         raise ValueError('No regions match assigned rules')
     elif len(regions) > 1:
-        raise ValueError('More than one region matches assigned rules')
+        raise ValueError(f'One region expected, found {regions} regions '
+                         f'greater than {region_area}.')
     else:
         minr, minc, maxr, maxc = regions[0].bbox
 
