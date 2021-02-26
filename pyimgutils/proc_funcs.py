@@ -53,7 +53,7 @@ def crop_to_window(img, rotate_deg=-90, region_area=100):
     if len(regions) < 1:
         raise ValueError('No regions match assigned rules')
     elif len(regions) > 1:
-        raise ValueError(f'One region expected, found {regions} regions '
+        raise ValueError(f'One region expected, found {len(regions)} regions '
                          f'greater than {region_area}.')
     else:
         minr, minc, maxr, maxc = regions[0].bbox
