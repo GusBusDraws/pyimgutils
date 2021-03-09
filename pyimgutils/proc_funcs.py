@@ -117,6 +117,60 @@ def v_fft_filter(img):
 
     return img_back
 
+def h_fft_filter(img):
+    """Function for performing a horizontally oriented Fast Fourier Transform (FFT) filtering on an image by removing vertical frequencies in the frequency space image and inverse transforming the result back to the spatial domain.
+
+    Args:
+        img (np.ndarray): Image that is to be transformed into the frequency domain and filtered.
+
+    Returns:
+        np.ndarray: Image that is result of vertical FFT filtering.
+    """
+    # Use the two dimensional Fast Fourier Transform (FFT) 
+    # to produce the Discrete Fourier Transform (DFT) of the image 
+    f = np.fft.fft2(img)
+    # Shift result so zero frequency component is at center
+    f_shift = np.fft.fftshift(f)
+    f_mag_spec = np.log(np.abs(f_shift))
+    f_mag_spec_norm = ((f_mag_spec - f_mag_spec.min()) 
+                       / (f_mag_spec.max() - f_mag_spec.min()))
+
+    # Make a boolean array to mask the DFT
+    f_mask = np.zeros_like(f_mag_spec, dtype='bool')
+
+    # Create an array that contains all the column indices except the center 
+    # index that has other horizontal information stored that we don't want to 
+    # remove
+    n_cols = img.shape[1]
+    h_mask = np.array([[0, n_cols//2],
+                    [n_cols//2 + 1, n_cols]])
+    # Go through each col of h_mask and apply the mask components
+    # to the DFT mask (f_mask)
+    for col in range(h_mask.shape[0]):
+        f_mask[f_mask.shape[0]//2, h_mask[0, col]:h_mask[1, col]] = 1
+
+    # Set the values of the DFT that match the True values of the 
+    # boolean mask to the mean value of the DFT
+    f_mag_spec_masked = f_mag_spec_norm.copy()
+    f_mag_spec_masked[f_mask] = np.mean(f_mag_spec_norm)
+
+    # Changing the magnitude spectrum (f_mag_spec) of the DFT is only for 
+    # visualization. In order to change the DFT itself, we must change the 
+    # shifted frequency component array (f_shift). Since we took the abosulte 
+    # value of this array for the visualization, we had to set the masked 
+    # values to the mean, but these values are centered around zero, so that is 
+    # where we will set the masked values.
+    # print(np.mean(f_shift))
+    f_shift[f_mask] = 0
+
+    # Inverse shift the zero frequency components back to their natural position
+    f_ishift = np.fft.ifftshift(f_shift)
+    # Inverse FFT back to the spatial domain
+    img_back = np.fft.ifft2(f_ishift)
+    img_back = np.abs(img_back)
+
+    return img_back
+
 def test():
     print('T E S T I N G . . .')
 
