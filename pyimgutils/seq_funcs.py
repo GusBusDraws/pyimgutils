@@ -8,9 +8,10 @@ from skimage import io, exposure, img_as_float, img_as_ubyte
 
 def animate(img_dir_path, 
             img_range,
-            img_step,
+            img_step=1,
             anim_fps=10,
             processing_func=None,
+            processing_func_kwargs=None,
             exp_name=None,
             save_dir_path=None,
             anim_type='gif',
@@ -29,9 +30,10 @@ def animate(img_dir_path,
     Args:
         img_dir_path (str): Path to directory containing images.
         img_range (2-tuple): Start and end for image sequence.
-        img_step (int): Step size for moving between range defined by img_range.
+        img_step (int, optional): Step size for moving between range defined by img_range. Defaults to 1.
         anim_fps (int, optional): Framerate of saved animation in frames per second. Defaults to 10.
         processing_func (function, optional): Optional processing function that will be applied to each image. Defaults to None.
+        processing_func_kwargs (dict, optional): Optional keyword arguments that will be passed to the processing function (processing_func). Defaults to None.
         exp_name (str, optional): Required for auto-generating filenames with 'save_dir_path'. If a path to a directory to save an animation is given, exp_name must also be given or else a ValueError is raised. Defaults to None.
         save_dir_path (str, optional): Path to save directory of animated gif. If provided instead of save_gif_path, filename will be generated based on range and step. save_gif_path overides this. Defaults to None.
         anim_type (str, optional): Pass 'gif' to save animation as 'gif', or 'mp4' to save animation as a video file. Saving as video file requires can greatly reduce file size (over an order of magnitude in some cases) by allowing for copmressing in the time dimension, but requires movie writer software FFMpeg. See README.md for install details. Defaults to 'gif'.
@@ -62,7 +64,9 @@ def animate(img_dir_path,
     # ratio which will determine figure size
     img_0_path = os.path.join(img_dir_path, img_fn_list[0])
     img_0 = io.imread(img_0_path)
-    if processing_func is not None:
+    if processing_func is not None and processing_func_kwargs is not None:
+        img_0 = processing_func(img_0, **processing_func_kwargs)
+    elif processing_func is not None:
         img_0 = processing_func(img_0)
     img_asp = img_0.shape[0]/img_0.shape[1]
     
@@ -94,7 +98,10 @@ def animate(img_dir_path,
         img_n = img_as_float(img_n)
 
         if processing_func is not None:
-            img_n = processing_func(img_n)
+            if processing_func_kwargs is not None:
+                img_n = processing_func(img_n, **processing_func_kwargs)
+            else:
+                img_n = processing_func(img_n)
             # Change filename prefix to match the name of the processing 
             # functions applied
             fn_prefix = processing_func.__name__
