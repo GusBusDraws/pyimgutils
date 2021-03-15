@@ -6,6 +6,9 @@ import numpy as np
 from skimage import io, exposure, img_as_float, img_as_ubyte
 
 
+def is_loaded():
+    return True
+
 def animate(img_dir_path, 
             img_range,
             img_step=1,
@@ -147,9 +150,6 @@ def animate(img_dir_path,
         return img_anim.to_jshtml()
     else:
         plt.show()
-
-def test():
-    print('T E S T I N G . . .')
 
 
 if __name__ == '__main__':
