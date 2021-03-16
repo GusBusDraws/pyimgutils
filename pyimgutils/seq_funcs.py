@@ -3,7 +3,7 @@ import os
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
-from skimage import io, exposure, img_as_float, img_as_ubyte
+from skimage import exposure, img_as_float, img_as_ubyte, io 
 
 
 def is_loaded():
@@ -71,8 +71,8 @@ def animate(img_dir_path,
         img_0 = processing_func(img_0, **processing_func_kwargs)
     elif processing_func is not None:
         img_0 = processing_func(img_0)
+
     img_asp = img_0.shape[0]/img_0.shape[1]
-    
     if fig_h is not None and fig_w is None:
         fig_w = fig_h/img_asp
     elif fig_w is not None and fig_h is None:
@@ -151,7 +151,47 @@ def animate(img_dir_path,
     else:
         plt.show()
 
+def get_img(
+    img_dir_path, 
+    img_n, 
+    img_filetype='.tif', 
+    return_float=True
+):
+    
+    img_dir_list = os.listdir(img_dir_path)
+    img_fn_list = [fn for fn in img_dir_list if fn.endswith(img_filetype)]
+    img_fn_list.sort()
+    img_fn = img_fn_list[img_n]
+    img_path = os.path.join(img_dir_path, img_fn)
+    img = io.imread(img_path)
 
-if __name__ == '__main__':
-    test()
+    if return_float:
+        img = img_as_float(img)
+
+    return img
+
+def show_img(
+    img, 
+    show_axes=False,
+    fig_h=6,
+    fig_w=None
+):
+
+    img_asp = img.shape[0]/img.shape[1]
+    if fig_h is not None and fig_w is None:
+        fig_w = fig_h/img_asp
+    elif fig_w is not None and fig_h is None:
+        fig_h = fig_w*img_asp
+    elif fig_h is None and fig_w is None:
+        raise ValueError('Either fig_h or fig_w must be non-None to '
+                         'calculate the other value.')
+    elif fig_h is not None and fig_w is not None:
+        print('Warning: passing fig_h and fig_w may result in distorted aspect '
+              'ratio of image.')
+
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+    ax.imshow(img)
+    if not show_axes:
+        ax.set_axis_off()
+    plt.show()
 
