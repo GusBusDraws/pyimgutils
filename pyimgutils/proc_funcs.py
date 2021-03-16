@@ -1,28 +1,115 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
-from skimage import (img_as_float, filters, morphology, segmentation, measure, 
-                     transform, util)
+from skimage import (
+    filters, 
+    img_as_float, 
+    io,
+    measure,
+    morphology, 
+    segmentation, 
+    transform, 
+    util
+)
 
 
-def subtract_img(img, img_to_subtract):
-    """Subtract img_to_subtract from img.
+def avg_imgs(
+    img_dir_path, 
+    img_ns,
+    return_float=True,
+    preprocessing_func=None,
+    img_filetype='.tif',
+    **kwargs
+):
+    """Function for averaging multiple images together.
 
     Args:
-        img (np.ndarray): Image that img_to_subtract will be subtracted from. 
-        img_to_subtract (np.ndarray): Image that will be subtrated from img.
+        img_dir_path (str): Path to directory containing images.
+        img_ns (iterable): An iterable (list, range, array, etc.) that represents the image numbers of the images to average together.
+        return_float (bool, optional): When true, cinverts the images to floats before averaging. Defaults to True.
+        preprocessing_func (function, optional): Preprocessing function to apply to images before averaging. Must take an image as the first argument and also return an image. Defaults to None.
+        img_filetype (str, optional): Filetype of images located in img_dir_path. Defaults to '.tif'.
+        **kwargs: Keyword arguments that are passed to preprocessing_func if provided.
+
+    Returns:
+        np.ndarray: Image where each pixel value has been averaged with other images in the same sequence.
+    """
+    # Build sorted list of images in img_dir_path
+    img_dir_list = os.listdir(img_dir_path)
+    img_fn_list = [fn for fn in img_dir_list if fn.endswith(img_filetype)]
+    img_fn_list.sort()
+
+    # Create empty list that will be filled with images to form 3D image 
+    # (3D array consisting of stacked 2D images in the 0th axis)
+    img_3d = []
+    
+    for img_n in img_ns:
+        # Load each image
+        img_fn = img_fn_list[img_n]
+        img_path = os.path.join(img_dir_path, img_fn)
+        img = io.imread(img_path)
+        # Perform any preprocessing steps
+        if preprocessing_func is not None:
+            img = preprocessing_func(img, **kwargs)
+        # Convert to float
+        if return_float:
+            img = img_as_float(img)
+        # Append to list
+        img_3d.append(img)
+    
+    # Convert list to 3D array
+    img_3d = np.array(img_3d)
+    # Average slices (averages each pixel value in the same position of all stacked images)
+    img_mean = np.mean(img_3d, axis=0)
+    
+    return img_mean
+
+def subtract_img(
+    img, 
+    img_to_sub=None, 
+    img_dir_path=None, 
+    img_n=None,
+    preprocessing_func=None,
+    preprocessing_func_kwargs=None,
+    img_filetype='.tif'
+):
+    """Subtract img_to_sub from img.
+
+    Args:
+        img (np.ndarray): Image that img_to_sub will be subtracted from. 
+        img_to_sub (np.ndarray): Image that will be subtrated from img.
 
     Returns:
         np.ndarray: Image that is result of subtraction.
     """
-    img = img_as_float(img)
-    img_to_subtract = img_as_float(img_to_subtract)
 
-    img_diff = (img[0:min(img.shape[0], img_to_subtract.shape[0]), 
-                     0:min(img.shape[1], img_to_subtract.shape[1])] 
-                - img_to_subtract[0:min(img.shape[0], 
-                                        img_to_subtract.shape[0]), 
-                                  0:min(img.shape[1], 
-                                        img_to_subtract.shape[1])])
+    img = img_as_float(img)
+
+    if img_to_sub is not None:
+        img_to_sub = img_as_float(img_to_sub)
+    elif img_dir_path is not None:
+        img_dir_list = os.listdir(img_dir_path)
+        img_fn_list = [fn for fn in img_dir_list if fn.endswith(img_filetype)]
+        img_fn_list.sort()
+        img_to_sub_fn = img_fn_list[img_n]
+        img_to_sub_path = os.path.join(img_dir_path, img_to_sub_fn)
+        img_to_sub = io.imread(img_to_sub_path)
+        img_to_sub = img_as_float(img_to_sub)
+    else:
+        raise ValueError('None passed to img_to_sub and img_dir_path.'
+                         ' Non-None valuemust be passed to one or the other.')
+
+    img_diff = (
+        img[
+            0 : min(img.shape[0], img_to_sub.shape[0]),
+            0 : min(img.shape[1], img_to_sub.shape[1])
+        ]
+        - img_to_sub[
+            0 : min(img.shape[0], img_to_sub.shape[0]),
+            0 : min(img.shape[1], img_to_sub.shape[1])
+        ]
+    )
 
     return img_diff
 
