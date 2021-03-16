@@ -9,12 +9,15 @@ def compare_processing(img_dir_path,
                        img_n,
                        preprocessing_func=None,
                        preprocessing_func_kwargs=None,
-                       processing_funcs=[],
-                       processing_funcs_kwargs_list=[],
+                       processing_funcs=None,
+                       processing_funcs_kwargs_list=None,
                        line_x=None, 
                        line_y=None, 
                        img_type='.tif', 
-                       fig_y_in=6):
+                       fig_h=6,
+                       fig_w=None,
+                       tight_layout=True
+):
     """Function that compares processing routines by showing processed images beside each other in a figure.
 
     Args:
@@ -44,6 +47,20 @@ def compare_processing(img_dir_path,
     elif preprocessing_func is not None:
         img = preprocessing_func(img)
         
+    # processing_funcs and processing_funcs_kwargs_list are prepared to accept
+    # multiple functions in a list, so if no values are passed, an empty list
+    # must be created
+    if processing_funcs is None:
+        processing_funcs = []
+    # If a non-list object is passed, a list with only that object is created
+    elif not isinstance(processing_funcs, list):
+        processing_funcs = [processing_funcs]
+
+    if processing_funcs_kwargs_list is None:
+        processing_funcs_kwargs_list = []
+    elif not isinstance(processing_funcs_kwargs_list, list):
+        processing_funcs_kwargs_list = [processing_funcs_kwargs_list]
+
     # We iterate through processing_funcs to plot the images in the figure, 
     # but processing_func is applied to the preprocessed image. To show the 
     # preprocessed image, no other processing is applied so we add None
@@ -69,11 +86,20 @@ def compare_processing(img_dir_path,
     else:
         n_rows = 2
         
-    # Following equation algebraically rearranged to get fig_s_in:
-    # (fig_x_in / n_cols) / (fig_y_in / n_rows) = img.shape[1] / img.shape[0]
-    fig_x_in = img.shape[1] / img.shape[0] * (fig_y_in / n_rows) * n_cols
+    if fig_h is not None and fig_w is None:
+        # Following equation algebraically rearranged to get fig_s_in:
+        # (fig_w / n_cols) / (fig_h / n_rows) = img.shape[1] / img.shape[0]
+        fig_w = img.shape[1] / img.shape[0] * (fig_h / n_rows) * n_cols
+    elif fig_w is not None and fig_h is None:
+        fig_h = img.shape[0] / img.shape[1] * (fig_w / n_cols) * n_rows
+    elif fig_h is None and fig_w is None:
+        raise ValueError('Either fig_h or fig_w must be non-None to '
+                         'calculate the other value.')
+    elif fig_h is not None and fig_w is not None:
+        print('Warning: passing fig_h and fig_w may result in distorted aspect '
+              'ratio of image.')
     
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(fig_x_in, fig_y_in))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(fig_w, fig_h))
         
     if n_cols > 1:
         # Zip processing_funcs and processing_func_kwargs together so they are returned in sync with each other
@@ -138,5 +164,6 @@ def compare_processing(img_dir_path,
             asp_rats[1] /= np.abs(np.diff(axes[0].get_xlim())[0] / np.diff(axes[0].get_ylim())[0])
             axes[1].set_aspect(asp_rats[1])
     
-    plt.tight_layout()
+    if tight_layout:
+        plt.tight_layout()
     plt.show()
