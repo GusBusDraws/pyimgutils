@@ -13,7 +13,7 @@ def compare_processing(img_dir_path,
                        processing_funcs_kwargs_list=None,
                        line_x=None, 
                        line_y=None, 
-                       img_type='.tif', 
+                       img_filetype='.tif', 
                        fig_h=6,
                        fig_w=None,
                        tight_layout=True
@@ -29,7 +29,7 @@ def compare_processing(img_dir_path,
         processing_funcs_kwargs_list (list, optional): [description]. Defaults to [].
         line_x ([type], optional): [description]. Defaults to None.
         line_y ([type], optional): [description]. Defaults to None.
-        img_type (str, optional): [description]. Defaults to '.tif'.
+        img_filetype (str, optional): [description]. Defaults to '.tif'.
         fig_y_in (int, optional): [description]. Defaults to 6.
 
     Raises:
@@ -37,7 +37,7 @@ def compare_processing(img_dir_path,
     """
     
     img_dir_fns = os.listdir(img_dir_path)
-    imgs_only_fns = [fn for fn in img_dir_fns if fn.endswith(img_type)]
+    imgs_only_fns = [fn for fn in img_dir_fns if fn.endswith(img_filetype)]
     img_path = os.path.join(img_dir_path, imgs_only_fns[img_n])
     img = io.imread(img_path)
     
@@ -98,6 +98,10 @@ def compare_processing(img_dir_path,
     elif fig_h is not None and fig_w is not None:
         print('Warning: passing fig_h and fig_w may result in distorted aspect '
               'ratio of image.')
+
+    #------------------------#
+    # Formatting Plots below #
+    #------------------------#
     
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(fig_w, fig_h))
         
@@ -116,23 +120,54 @@ def compare_processing(img_dir_path,
                 
             axes[0, col].imshow(img_to_plot)
             axes[0, col].set_axis_off()
-            axes[-1, col].hist(img_to_plot.ravel(), bins=256, histtype='step', color='black')
+            axes[-1, col].hist(
+                img_to_plot.ravel(), 
+                bins=256, 
+                histtype='step', 
+                color='black'
+            )
             axes[-1, col].set_xlim(0, 1)
-            axes[-1, col].ticklabel_format(axis='y', style='scientific', scilimits=(0, 0))
+            axes[-1, col].ticklabel_format(
+                axis='y', 
+                style='scientific', 
+                scilimits=(0, 0)
+            )
 
             asp_rats = np.zeros_like(axes)
-            asp_rats[-1, col] = np.diff(axes[-1, col].get_xlim())[0] / np.diff(axes[-1, col].get_ylim())[0]
-            asp_rats[-1, col] /= np.abs(np.diff(axes[0, col].get_xlim())[0] / np.diff(axes[0, col].get_ylim())[0])
+            asp_rats[-1, col] = (
+                np.diff(axes[-1, col].get_xlim())[0] 
+                / np.diff(axes[-1, col].get_ylim())[0]
+            )
+            asp_rats[-1, col] /= np.abs(
+                np.diff(axes[0, col].get_xlim())[0] 
+                / np.diff(axes[0, col].get_ylim())[0]
+            )
             axes[-1, col].set_aspect(asp_rats[-1, col])
         
             if line_y is not None:
                 img_row = img_to_plot[line_y, :]
-                axes[0, col].plot(np.arange(img_row.shape[0]), np.full_like(img_row, line_y), color='red', linewidth=1)
-                axes[1, col].plot(np.arange(img_row.shape[0]), img_row, color='red', linewidth=1)
+                axes[0, col].plot(
+                    np.arange(img_row.shape[0]), 
+                    np.full_like(img_row, line_y), 
+                    color='red', 
+                    linewidth=1
+                )
+                axes[1, col].plot(
+                    np.arange(img_row.shape[0]), 
+                    img_row, 
+                    color='red', 
+                    linewidth=1
+                )
                 axes[1, col].set_xlim(0, img_row.shape[0])
 
-                asp_rats[1, col] = np.diff(axes[1, col].get_xlim())[0] / np.diff(axes[1, col].get_ylim())[0]
-                asp_rats[1, col] /= np.abs(np.diff(axes[0, col].get_xlim())[0] / np.diff(axes[0, col].get_ylim())[0])
+                asp_rats[1, col] = (
+                    np.diff(axes[1, col].get_xlim())[0] 
+                    / np.diff(axes[1, col].get_ylim())[0]
+                )
+                asp_rats[1, col] /= np.abs(
+                    np.diff(axes[0, col].get_xlim())[0] 
+                    / np.diff(axes[0, col].get_ylim())[0]
+                )
                 axes[1, col].set_aspect(asp_rats[1, col])
     else:
         processing_func = processing_funcs[0]
@@ -145,23 +180,54 @@ def compare_processing(img_dir_path,
             
         axes[0].imshow(img_to_plot)
         axes[0].set_axis_off()
-        axes[-1].hist(img_to_plot.ravel(), bins=256, histtype='step', color='black')
+        axes[-1].hist(
+            img_to_plot.ravel(), 
+            bins=256, 
+            histtype='step', 
+            color='black'
+        )
         axes[-1].set_xlim(0, 1)
-        axes[-1].ticklabel_format(axis='y', style='scientific', scilimits=(0, 0))
+        axes[-1].ticklabel_format(
+            axis='y', 
+            style='scientific', 
+            scilimits=(0, 0)
+        )
 
         asp_rats = np.zeros_like(axes)
-        asp_rats[-1] = np.diff(axes[-1].get_xlim())[0] / np.diff(axes[-1].get_ylim())[0]
-        asp_rats[-1] /= np.abs(np.diff(axes[0].get_xlim())[0] / np.diff(axes[0].get_ylim())[0])
+        asp_rats[-1] = (
+            np.diff(axes[-1].get_xlim())[0] 
+            / np.diff(axes[-1].get_ylim())[0]
+        )
+        asp_rats[-1] /= np.abs(
+            np.diff(axes[0].get_xlim())[0] 
+            / np.diff(axes[0].get_ylim())[0]
+        )
         axes[-1].set_aspect(asp_rats[-1])
     
         if line_y is not None:
             img_row = img_to_plot[line_y, :]
-            axes[0].plot(np.arange(img_row.shape[0]), np.full_like(img_row, line_y), color='red', linewidth=1)
-            axes[1].plot(np.arange(img_row.shape[0]), img_row, color='red', linewidth=1)
+            axes[0].plot(
+                np.arange(img_row.shape[0]), 
+                np.full_like(img_row, line_y), 
+                color='red', 
+                linewidth=1
+            )
+            axes[1].plot(
+                np.arange(img_row.shape[0]), 
+                img_row, 
+                color='red', 
+                linewidth=1
+            )
             axes[1].set_xlim(0, img_row.shape[0])
 
-            asp_rats[1] = np.diff(axes[1].get_xlim())[0] / np.diff(axes[1].get_ylim())[0]
-            asp_rats[1] /= np.abs(np.diff(axes[0].get_xlim())[0] / np.diff(axes[0].get_ylim())[0])
+            asp_rats[1] = (
+                np.diff(axes[1].get_xlim())[0] 
+                / np.diff(axes[1].get_ylim())[0]
+            )
+            asp_rats[1] /= np.abs(
+                np.diff(axes[0].get_xlim())[0] 
+                / np.diff(axes[0].get_ylim())[0]
+            )
             axes[1].set_aspect(asp_rats[1])
     
     if tight_layout:
