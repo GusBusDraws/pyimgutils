@@ -153,7 +153,12 @@ def crop_to_window(img, rotate_deg=-90, region_area=100):
 
     return img_trim
 
-def v_fft_filter(img):
+def v_fft_filter(
+    img,
+    show=False,
+    colormap='viridis',
+    **plt_kwargs
+):
     """Function for performing a vertically oriented Fast Fourier Transform (FFT) filtering on an image by removing vertical frequencies in the frequency space image and inverse transforming the result back to the spatial domain.
 
     Args:
@@ -202,7 +207,27 @@ def v_fft_filter(img):
     img_back = np.fft.ifft2(f_ishift)
     img_back = np.abs(img_back)
 
-    return img_back
+    if show:
+        fig, axes = plt.subplots(1, 5, **plt_kwargs)
+        ax = axes.ravel()
+        ax[0].imshow(img, cmap=colormap)
+        ax[0].set_title('Image In')
+        ax[1].imshow(f_mag_spec_norm, cmap=colormap)
+        ax[1].set_title('FFT of Image In')
+        ax[2].imshow(f_mask, cmap=colormap, interpolation='nearest')
+        ax[2].set_title('FFT Mask')
+        ax[3].imshow(f_mag_spec_masked, cmap=colormap)
+        ax[3].set_title('Masked FFT')
+        ax[4].imshow(img_back, cmap=colormap)
+        ax[4].set_title('Image from Inverse FFT')
+
+        for a in ax:
+            a.set_axis_off()
+
+        plt.tight_layout()
+        plt.show()
+    else:
+        return img_back
 
 def h_fft_filter(img):
     """Function for performing a horizontally oriented Fast Fourier Transform (FFT) filtering on an image by removing vertical frequencies in the frequency space image and inverse transforming the result back to the spatial domain.
