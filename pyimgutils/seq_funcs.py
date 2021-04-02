@@ -92,7 +92,7 @@ def animate(img_dir_path,
     # Set the filename prefixe to 'raw' to show that no additional processing 
     # functions were applied. If processing function is applied, fn_prefix will
     # be changed.
-    fn_prefix = 'raw'
+    fn_prefix = f'raw-{colormap}'
 
     for n in np.arange(img_range[0], img_range[1], img_step):
 
@@ -107,7 +107,7 @@ def animate(img_dir_path,
                 img_n = processing_func(img_n)
             # Change filename prefix to match the name of the processing 
             # functions applied
-            fn_prefix = processing_func.__name__
+            fn_prefix = f'{processing_func.__name__}-{colormap}'
 
         img_n_ax = ax.imshow(
             img_n, aspect=img_asp_setting, cmap=colormap, animated=True)
@@ -134,8 +134,8 @@ def animate(img_dir_path,
         save_path = save_gif_path
     elif save_dir_path is not None:
         if exp_name is not None:
-            fn = (f'{exp_name}_{fn_prefix}_{img_range[0]}-{img_range[1]}'
-                  f'-{img_step}_{anim_fps}fps.{anim_type}')
+            fn = (f'{exp_name}-{fn_prefix}-{img_range[0]}_{img_range[1]}'
+                  f'_{img_step}-{anim_fps}fps.{anim_type}')
             save_path = os.path.join(save_dir_path, fn)
         else:
             raise ValueError(
