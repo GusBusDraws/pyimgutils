@@ -23,6 +23,16 @@ pyimgutils is not currently uploaded to PyPI.org, but can still be installed via
 
 # **Modules**
 
+## ***assess_funcs.py***
+#
+Module containing functions creating figures displaying images with histograms and line plots. 
+
+### `compare_processing()`
+
+Function that compares processing routines by showing processed images beside each other in a figure.
+
+
+
 ## ***seq_funcs.py***
 #
 Module containing functions for showing sequences of images from a directory of images. Functions have options for passing processing functions as well as a save path for an animated gif of the image sequence.

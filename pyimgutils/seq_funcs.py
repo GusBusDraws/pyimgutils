@@ -3,8 +3,11 @@ import os
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
-from skimage import io, exposure, img_as_float, img_as_ubyte
+from skimage import exposure, img_as_float, img_as_ubyte, io 
 
+
+def is_loaded():
+    return True
 
 def animate(img_dir_path, 
             img_range,
@@ -68,8 +71,8 @@ def animate(img_dir_path,
         img_0 = processing_func(img_0, **processing_func_kwargs)
     elif processing_func is not None:
         img_0 = processing_func(img_0)
+
     img_asp = img_0.shape[0]/img_0.shape[1]
-    
     if fig_h is not None and fig_w is None:
         fig_w = fig_h/img_asp
     elif fig_w is not None and fig_h is None:
@@ -89,7 +92,7 @@ def animate(img_dir_path,
     # Set the filename prefixe to 'raw' to show that no additional processing 
     # functions were applied. If processing function is applied, fn_prefix will
     # be changed.
-    fn_prefix = 'raw'
+    fn_prefix = f'raw-{colormap}'
 
     for n in np.arange(img_range[0], img_range[1], img_step):
 
@@ -104,7 +107,7 @@ def animate(img_dir_path,
                 img_n = processing_func(img_n)
             # Change filename prefix to match the name of the processing 
             # functions applied
-            fn_prefix = processing_func.__name__
+            fn_prefix = f'{processing_func.__name__}-{colormap}'
 
         img_n_ax = ax.imshow(
             img_n, aspect=img_asp_setting, cmap=colormap, animated=True)
@@ -131,8 +134,8 @@ def animate(img_dir_path,
         save_path = save_gif_path
     elif save_dir_path is not None:
         if exp_name is not None:
-            fn = (f'{exp_name}_{fn_prefix}_{img_range[0]}-{img_range[1]}'
-                  f'-{img_step}_{anim_fps}fps.{anim_type}')
+            fn = (f'{exp_name}-{fn_prefix}-{img_range[0]}_{img_range[1]}'
+                  f'_{img_step}-{anim_fps}fps.{anim_type}')
             save_path = os.path.join(save_dir_path, fn)
         else:
             raise ValueError(
@@ -148,10 +151,47 @@ def animate(img_dir_path,
     else:
         plt.show()
 
-def test():
-    print('T E S T I N G . . .')
+def get_img(
+    img_dir_path, 
+    img_n, 
+    img_filetype='.tif', 
+    return_float=True
+):
+    
+    img_dir_list = os.listdir(img_dir_path)
+    img_fn_list = [fn for fn in img_dir_list if fn.endswith(img_filetype)]
+    img_fn_list.sort()
+    img_fn = img_fn_list[img_n]
+    img_path = os.path.join(img_dir_path, img_fn)
+    img = io.imread(img_path)
 
+    if return_float:
+        img = img_as_float(img)
 
-if __name__ == '__main__':
-    test()
+    return img
+
+def show_img(
+    img, 
+    show_axes=False,
+    fig_h=6,
+    fig_w=None
+):
+
+    img_asp = img.shape[0]/img.shape[1]
+    if fig_h is not None and fig_w is None:
+        fig_w = fig_h/img_asp
+    elif fig_w is not None and fig_h is None:
+        fig_h = fig_w*img_asp
+    elif fig_h is None and fig_w is None:
+        raise ValueError('Either fig_h or fig_w must be non-None to '
+                         'calculate the other value.')
+    elif fig_h is not None and fig_w is not None:
+        print('Warning: passing fig_h and fig_w may result in distorted aspect '
+              'ratio of image.')
+
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+    ax.imshow(img)
+    if not show_axes:
+        ax.set_axis_off()
+    plt.show()
 
